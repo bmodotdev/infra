@@ -1,0 +1,54 @@
+---
+  - name: Install docker dependencies
+    apt:
+      state: present
+      update_cache: yes
+      cache_valid_time: 3600
+      name:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - lsb-release
+        - gnupg
+
+  - name: Install docker apt key
+    apt_key:
+      url:    https://download.docker.com/linux/ubuntu/gpg
+      state:  present
+
+  - name: Install docker repo
+    apt_repository:
+      repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+
+  - name: Install docker
+    apt:
+      state: present
+      update_cache: yes
+      cache_valid_time: 3600
+      name:
+        - docker-ce
+
+  - name: Configure docker
+    template:
+      src:  daemon.json.j2
+      dest: "{{ docker_config_dir }}/{{ docker_daemon_config }}"
+      owner:  root
+      group:  root
+      mode:   '0600'
+    notify: Restart docker
+    when: docker_daemon_log_driver is defined
+
+  - name: Enable docker
+    systemd:
+      name:       docker
+      enabled:    yes
+      state:      started
+
+  - name: Install docker-compose
+    get_url:
+      url:      "{{ docker_compose_url }}"
+      checksum: "{{ docker_compose_checksum }}"
+      dest:     "{{ docker_compose_file }}"
+      mode:     '0750'
+      owner:    root
+      group:    root
