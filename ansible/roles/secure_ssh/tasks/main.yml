@@ -1,0 +1,38 @@
+---
+- name: Create wheel user
+  user:
+    name:   "{{ wheel_user }}"
+    shell:  "{{ wheel_user_shell }}"
+    append: yes
+    groups: sudo
+
+- name: Add wheel user to sudoers
+  copy:
+    dest: /etc/sudoers.d/{{ wheel_user }}
+    content: "{{ wheel_user }} ALL=(ALL) NOPASSWD: ALL"
+
+- name: Add SSH Key
+  authorized_key:
+    user:   "{{ wheel_user }}"
+    state:  present
+    key:   "{{ wheel_user_ssh_public_key|split('\n')|join }}"
+
+- name: Disable SSH Password Authentication
+  lineinfile:
+    dest:   /etc/ssh/sshd_config
+    regexp: '^PasswordAuthentication'
+    line:   "PasswordAuthentication no"
+    state:  present
+    backup: yes
+  notify:
+    - Restart SSH
+
+- name: Disable SSH Root Login
+  lineinfile:
+    dest:   /etc/ssh/sshd_config
+    regexp: '^PermitRootLogin'
+    line:   "PermitRootLogin no"
+    state:  present
+    backup: yes
+  notify:
+    - Restart SSH

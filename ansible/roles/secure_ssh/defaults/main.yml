@@ -1,0 +1,4 @@
+---
+# wheel_user:
+# wheel_user_ssh_public_key:
+wheel_user_shell: /bin/bash

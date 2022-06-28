@@ -1,0 +1,14 @@
+dependencies: []
+
+galaxy_info:
+  min_ansible_version:  2.1
+  author:       bmodotdev
+  role_name:    secure_ssh
+  description:  Configure SSH for more security
+  license:      license (GPL-3.0-only)
+  platforms:
+  - name: Ubuntu
+    versions:
+    - all
+  galaxy_tags:
+    - ssh
