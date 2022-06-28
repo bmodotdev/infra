@@ -1,0 +1,8 @@
+[INPUT]
+    name cpu
+    tag  cpu.local
+    interval_sec {{ fluent_bit_cpu_interval_sec }}
+
+[OUTPUT]
+    name  stdout
+    match *

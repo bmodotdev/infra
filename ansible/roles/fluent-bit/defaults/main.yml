@@ -1,0 +1,19 @@
+---
+fluent_bit_user:        fluent-bit
+fluent_bit_service:     fluent-bit
+fluent_bit_shell:       /bin/bash
+fluent_bit_config_dir:  /etc/fluent-bit
+fluent_bit_home_dir:    /home/fluent-bit
+
+# fluent_bit_include_docker_containers
+fluent_bit_docker_config: input_docker.conf
+fluent_bit_docker_interval_sec: 60
+
+# fluent_bit_include_cpu
+fluent_bit_cpu_config: input_cpu.conf
+fluent_bit_cpu_interval_sec: 60
+
+# fluent_bit_include_systemd
+# fluent_bit_systemd_filters
+fluent_bit_systemd_config: input_systemd.conf
+fluent_bit_systemd_read_from_tail: On

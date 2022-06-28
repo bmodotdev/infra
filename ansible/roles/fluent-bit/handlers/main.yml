@@ -1,0 +1,5 @@
+---
+  - name: Restart fluent-bit
+    service:
+      name: "{{ fluent_bit_service }}.service"
+      state: restarted

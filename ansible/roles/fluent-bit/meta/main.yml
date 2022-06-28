@@ -1,0 +1,15 @@
+dependencies: []
+
+galaxy_info:
+  min_ansible_version:  2.1
+  author:       bmodotdev
+  role_name:    fluent-bit
+  description:  Install and configure a rootless fluent-bit agent
+  license:      license (GPL-3.0-only)
+  platforms:
+  - name: Ubuntu
+    versions:
+    - all
+  galaxy_tags:
+    - fluent-bit
+    - fluentd

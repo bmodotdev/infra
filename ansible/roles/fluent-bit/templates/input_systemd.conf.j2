@@ -1,0 +1,54 @@
+[INPUT]
+    Name            systemd
+    tag             systemd
+    Read_From_Tail  {{ fluent_bit_systemd_read_from_tail }}
+{% for filter in fluent_bit_systemd_filters %}
+    Systemd_Filter  {{ filter }}
+{% endfor %}
+
+
+# Extract systemd service name
+[FILTER]
+    Name    rewrite_tag
+    Match   systemd
+    Rule    $_SYSTEMD_UNIT ^(.+)(?=\.service) systemd.$1 false
+
+# Filter docker information
+[FILTER]
+    Name            record_modifier
+    Match           systemd.docker
+    Allowlist_key   _HOSTNAME
+    Allowlist_key   _SYSTEMD_UNIT
+    Allowlist_key   CONTAINER_NAME
+    Allowlist_key   CONTAINER_TAG
+    Allowlist_key   CONTAINER_ID
+    Allowlist_key   IMAGE_NAME
+    Allowlist_key   MESSAGE
+
+# Normalize
+[FILTER]
+    Name    modify
+    Match   systemd.*
+    Rename  _HOSTNAME       HOSTNAME
+    Rename  _SYSTEMD_UNIT   SYSTEMD_UNIT
+
+# Extract docker information
+[FILTER]
+    Name    rewrite_tag
+    Match   systemd.docker
+    Rule    $CONTAINER_NAME (.+) systemd.docker.container.name.$1 false
+    Rule    $CONTAINER_TAG  (.+) systemd.docker.container.tag.$1  true
+    Rule    $CONTAINER_ID   (.+) systemd.docker.container.id.$1   true
+    Rule    $IMAGE_NAME     (.+) systemd.docker.image.name.$1     true
+
+# Decode nginx logs
+[FILTER]
+    name            parser
+    Parser          nginx
+    Match_Regex     systemd\.docker\.container\.name\.(?:webserver|nginx)
+    Key_name        MESSAGE
+    Reserve_Data    On
+
+[OUTPUT]
+    name  stdout
+    match *

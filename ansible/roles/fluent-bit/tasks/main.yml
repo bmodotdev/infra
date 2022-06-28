@@ -1,0 +1,107 @@
+---
+  # https://docs.fluentbit.io/manual/installation/linux/ubuntu
+  - name: Install fluent-bit dependencies
+    apt:
+      state: present
+      update_cache: yes
+      cache_valid_time: 3600
+      name:
+        - apt-transport-https
+        - ca-certificates
+
+  - name: Install fluent-bit apt key
+    apt_key:
+      url:    https://packages.fluentbit.io/fluentbit.key
+      state:  present
+
+  - name: Install fluent-bit repo
+    apt_repository:
+      repo: deb https://packages.fluentbit.io/ubuntu/focal focal main
+
+  - name: Create fluent-bit user
+    user:
+      name:   "{{ fluent_bit_user }}"
+      shell:  "{{ fluent_bit_shell }}"
+      home:   "{{ fluent_bit_home_dir }}"
+
+  - name: Add fluent-bit user to docker group
+    user:
+      name:   "{{ fluent_bit_user }}"
+      groups: docker
+      append: yes
+    when: fluent_bit_include_docker_containers is defined
+
+  - name: Install fluent-bit
+    apt:
+      state: present
+      update_cache: yes
+      cache_valid_time: 3600
+      name:
+        - fluent-bit
+
+  - name: Install fluent-bit systemd override config
+    template:
+      src:    override.conf.j2
+      dest:   /etc/systemd/system/fluent-bit.service.d/override.conf
+      owner:  root
+      group:  root
+      mode:   '0600'
+
+  - name: Configure fluent-bit
+    template:
+      src:    fluent-bit.conf.j2
+      dest:   "{{ fluent_bit_config_dir }}/fluent-bit.conf"
+      owner:  "{{ fluent_bit_user }}"
+      group:  "{{ fluent_bit_user }}"
+      mode:   '0600'
+    notify:
+      - Restart fluent-bit
+
+  - name: Include fluent-bit docker input config
+    template:
+      src:    input_docker.conf.j2
+      dest:   "{{ fluent_bit_config_dir }}/{{ fluent_bit_docker_config }}"
+      owner:  "{{ fluent_bit_user }}"
+      group:  "{{ fluent_bit_user }}"
+      mode:   '0600'
+    when: fluent_bit_include_docker_containers is defined
+    notify:
+      - Restart fluent-bit
+
+  - name: Include fluent-bit systemd input config
+    template:
+      src:    input_systemd.conf.j2
+      dest:   "{{ fluent_bit_config_dir }}/{{ fluent_bit_systemd_config }}"
+      owner:  "{{ fluent_bit_user }}"
+      group:  "{{ fluent_bit_user }}"
+      mode:   '0600'
+    when: fluent_bit_include_systemd is defined
+    notify:
+      - Restart fluent-bit
+
+  - name: Add fluent-bit user to systemd-journal group
+    user:
+      name:   "{{ fluent_bit_user }}"
+      groups: systemd-journal
+      append: yes
+    when: fluent_bit_include_systemd is defined
+    notify:
+      - Restart fluent-bit
+
+  - name: Include fluent-bit cpu input config
+    template:
+      src:    input_cpu.conf.j2
+      dest:   "{{ fluent_bit_config_dir }}/{{ fluent_bit_cpu_config }}"
+      owner:  "{{ fluent_bit_user }}"
+      group:  "{{ fluent_bit_user }}"
+      mode:   '0600'
+    when: fluent_bit_include_cpu is defined
+    notify:
+      - Restart fluent-bit
+
+  - name: Start and enable fluent-bit service
+    systemd:
+      name:           fluent-bit.service
+      daemon_reload:  yes
+      enabled:        yes
+      state:          started

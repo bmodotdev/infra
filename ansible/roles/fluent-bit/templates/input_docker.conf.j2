@@ -1,0 +1,8 @@
+[INPUT]
+    Name            docker
+    Include         {{ fluent_bit_include_docker_containers }}
+    Interval_Sec    {{ fluent_bit_docker_interval_sec }}
+
+[OUTPUT]
+    Name    stdout
+    Match   *
