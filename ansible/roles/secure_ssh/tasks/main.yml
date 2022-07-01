@@ -17,6 +17,16 @@
     state:  present
     key:   "{{ wheel_user_ssh_public_key|split('\n')|join }}"
 
+- name: Allow SSH to wheel user only
+  lineinfile:
+    dest:   /etc/ssh/sshd_config
+    regexp: '^AllowUsers'
+    line:   "AllowUsers {{ wheel_user }}"
+    state:  present
+    backup: yes
+  notify:
+    - Restart SSH
+
 - name: Disable SSH Password Authentication
   lineinfile:
     dest:   /etc/ssh/sshd_config
